@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+
+    environment {
+        HARBOR_CREDENTIALS=credentials('harbor_beautytiger')
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'docker build -t harbor.beautytiger.home/myapplication/hostname:{env.BUILD_NUMBER} .'
+            }
+        }
+        stage('Login') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login harbor.beautytiger.home -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
+        stage('Push') {
+
+            steps {
+                sh 'docker push harbor.beautytiger.home/myapplication/hostname:{env.BUILD_NUMBER}'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
+            }
+        }
+    }
+    post {
+        always {
+            sh 'docker logout harbor.beautytiger.home'
+        }
+    }
+}
